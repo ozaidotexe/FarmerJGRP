@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JGRP Farmer Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jgrp: { green: '#16a34a', dark: '#1f2937' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased transition-all">
+
+    <!-- ==================== AUTHENTICATION VIEW ==================== -->
+    <div id="auth-view" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-jgrp-dark mb-6">JGRP Farmer Portal</h2>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="login-username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Nama IC / Username">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-jgrp-green text-white font-semibold py-2 rounded-lg hover:bg-green-700 transition">Login</button>
+                <p class="text-sm text-center text-gray-600 mt-4">Belum punya akun? <a href="#" onclick="toggleAuth('register')" class="text-jgrp-green hover:underline">Daftar di sini</a></p>
+            </form>
+
+            <!-- Register Form (Hidden by default) -->
+            <form id="register-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="reg-username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Buat Username">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="reg-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Buat Password">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Ulangi Password</label>
+                    <input type="password" id="reg-repassword" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Ulangi Password">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">Register</button>
+                <p class="text-sm text-center text-gray-600 mt-4">Sudah punya akun? <a href="#" onclick="toggleAuth('login')" class="text-jgrp-green hover:underline">Login di sini</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div id="dashboard-view" class="hidden min-h-screen bg-gray-50">
+        <!-- Navbar -->
+        <nav class="bg-jgrp-dark text-white p-4 shadow-md">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">🌾 Farmer Calculator</h1>
+                <div class="flex items-center gap-4">
+                    <span id="welcome-text" class="font-medium text-sm md:text-base">Halo, Player!</span>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-semibold transition">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto p-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Kalkulator Form (Kiri) -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-md h-fit">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Input Kalkulasi Panen</h2>
+                <form id="calc-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jumlah Hasil Panen</label>
+                        <input type="number" id="calc-amount" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Contoh: 150">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Harga Beli per Bibit ($)</label>
+                        <input type="number" step="0.01" id="calc-buy" required value="0.27" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Harga Jual per Unit ($)</label>
+                        <input type="number" step="0.01" id="calc-sell" required value="0.40" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mt-2">
+                        <h3 class="text-sm font-bold text-gray-700 mb-3">Biaya Tambahan (Opsional)</h3>
+                        
+                        <!-- Input Water -->
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Jml Botol Water</label>
+                                <input type="number" id="calc-water-qty" value="0" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Contoh: 10">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Harga per Botol ($)</label>
+                                <input type="number" step="0.01" id="calc-water-price" value="1.12" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Input Hoe -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Jml Hoe</label>
+                                <input type="number" id="calc-hoe-qty" value="0" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Contoh: 100">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Harga per Hoe ($)</label>
+                                <input type="number" step="0.01" id="calc-hoe-price" value="7.50" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-jgrp-green text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-lg mt-2">Hitung Pendapatan</button>
+                </form>
+            </div>
+
+            <!-- Hasil & Riwayat (Kanan) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Card Hasil Hitung -->
+                <div id="result-card" class="bg-white p-6 rounded-xl shadow-md hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Proyeksi Pendapatan</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 1 Hari -->
+                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                            <h3 class="font-bold text-blue-800 text-center mb-2">1 Hari (1x Panen)</h3>
+                            <div class="text-sm text-gray-700 space-y-1">
+                                <p class="flex justify-between"><span>Kotor:</span> <span id="res-1-gross" class="font-semibold text-gray-900">$0.00</span></p>
+                                <p class="flex justify-between text-red-600"><span>Modal:</span> <span id="res-1-cost">-$0.00</span></p>
+                                <hr class="my-1 border-blue-200">
+                                <p class="flex justify-between font-bold text-green-700 text-lg"><span>Profit:</span> <span id="res-1-profit">$0.00</span></p>
+                            </div>
+                        </div>
+                        <!-- 3 Hari -->
+                        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg">
+                            <h3 class="font-bold text-indigo-800 text-center mb-2">3 Hari</h3>
+                            <div class="text-sm text-gray-700 space-y-1">
+                                <p class="flex justify-between"><span>Kotor:</span> <span id="res-3-gross" class="font-semibold text-gray-900">$0.00</span></p>
+                                <p class="flex justify-between text-red-600"><span>Modal:</span> <span id="res-3-cost">-$0.00</span></p>
+                                <hr class="my-1 border-indigo-200">
+                                <p class="flex justify-between font-bold text-green-700 text-lg"><span>Profit:</span> <span id="res-3-profit">$0.00</span></p>
+                            </div>
+                        </div>
+                        <!-- 7 Hari -->
+                        <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+                            <h3 class="font-bold text-purple-800 text-center mb-2">7 Hari (1 Minggu)</h3>
+                            <div class="text-sm text-gray-700 space-y-1">
+                                <p class="flex justify-between"><span>Kotor:</span> <span id="res-7-gross" class="font-semibold text-gray-900">$0.00</span></p>
+                                <p class="flex justify-between text-red-600"><span>Modal:</span> <span id="res-7-cost">-$0.00</span></p>
+                                <hr class="my-1 border-purple-200">
+                                <p class="flex justify-between font-bold text-green-700 text-lg"><span>Profit:</span> <span id="res-7-profit">$0.00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Riwayat Tersimpan -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-lg font-bold text-gray-800">Riwayat Kalkulasi</h2>
+                        <button onclick="clearHistory()" class="text-xs text-red-500 hover:text-red-700 underline">Hapus Riwayat</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2">Waktu</th>
+                                    <th class="px-4 py-2">Tanaman</th>
+                                    <th class="px-4 py-2">H. Beli / Jual</th>
+                                    <th class="px-4 py-2">Profit (1 Hari)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <!-- Data Riwayat akan di-render di sini via JS -->
+                            </tbody>
+                        </table>
+                        <div id="empty-history" class="text-center text-gray-500 py-4 hidden">Belum ada riwayat perhitungan.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // Database Mock (LocalStorage keys)
+        const USERS_DB_KEY = 'jgrp_users';
+        const SESSION_KEY = 'jgrp_session';
+        let currentUser = null;
+
+        // --- Inisialisasi Aplikasi ---
+        window.onload = () => {
+            // Cek apakah ada sesi login
+            const session = localStorage.getItem(SESSION_KEY);
+            if (session) {
+                currentUser = session;
+                showDashboard();
+            } else {
+                showAuth();
+            }
+        };
+
+        // --- Logika Navigasi Tampilan ---
+        function toggleAuth(type) {
+            if(type === 'register') {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('auth-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('welcome-text').innerText = `Halo, ${currentUser}!`;
+            loadHistory();
+        }
+
+        // --- Logika Autentikasi ---
+        // Register
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            const repass = document.getElementById('reg-repassword').value;
+
+            if (pass !== repass) return alert("Password tidak cocok!");
+            
+            let users = JSON.parse(localStorage.getItem(USERS_DB_KEY)) || {};
+            if (users[user]) return alert("Username sudah terdaftar! Silakan gunakan nama lain.");
+
+            // Simpan User
+            users[user] = pass;
+            localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+            alert("Registrasi Berhasil! Silakan Login.");
+            toggleAuth('login');
+            this.reset();
+        });
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value;
+
+            let users = JSON.parse(localStorage.getItem(USERS_DB_KEY)) || {};
+            
+            if (users[user] && users[user] === pass) {
+                currentUser = user;
+                localStorage.setItem(SESSION_KEY, user);
+                this.reset();
+                showDashboard();
+            } else {
+                alert("Username atau Password salah!");
+            }
+        });
+
+        // Logout
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem(SESSION_KEY);
+            // Sembunyikan hasil perhitungan yang lama
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('calc-form').reset();
+            showAuth();
+        }
+
+        // --- Logika Kalkulator ---
+        function formatMoney(amount) {
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        document.getElementById('calc-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Ambil Input Utama
+            const amount = parseFloat(document.getElementById('calc-amount').value);
+            const buyPrice = parseFloat(document.getElementById('calc-buy').value);
+            const sellPrice = parseFloat(document.getElementById('calc-sell').value);
+            
+            // Ambil Input Biaya Tambahan (Water & Hoe)
+            const waterQty = parseFloat(document.getElementById('calc-water-qty').value) || 0;
+            const waterPrice = parseFloat(document.getElementById('calc-water-price').value) || 0;
+            const hoeQty = parseFloat(document.getElementById('calc-hoe-qty').value) || 0;
+            const hoePrice = parseFloat(document.getElementById('calc-hoe-price').value) || 0;
+
+            // Hitung total pengeluaran tambahan
+            const totalExtraCost = (waterQty * waterPrice) + (hoeQty * hoePrice);
+
+            // Perhitungan 1 Hari
+            const gross1 = amount * sellPrice;
+            const cost1 = (amount * buyPrice) + totalExtraCost; // Modal bibit + Modal tambahan
+            const profit1 = gross1 - cost1;
+
+            // Update UI 1 Hari
+            document.getElementById('res-1-gross').innerText = formatMoney(gross1);
+            document.getElementById('res-1-cost').innerText = "-" + formatMoney(cost1);
+            document.getElementById('res-1-profit').innerText = formatMoney(profit1);
+
+            // Update UI 3 Hari
+            document.getElementById('res-3-gross').innerText = formatMoney(gross1 * 3);
+            document.getElementById('res-3-cost').innerText = "-" + formatMoney(cost1 * 3);
+            document.getElementById('res-3-profit').innerText = formatMoney(profit1 * 3);
+
+            // Update UI 7 Hari
+            document.getElementById('res-7-gross').innerText = formatMoney(gross1 * 7);
+            document.getElementById('res-7-cost').innerText = "-" + formatMoney(cost1 * 7);
+            document.getElementById('res-7-profit').innerText = formatMoney(profit1 * 7);
+
+            // Tampilkan Result Card
+            document.getElementById('result-card').classList.remove('hidden');
+
+            // Simpan ke Riwayat
+            saveToHistory(amount, buyPrice, sellPrice, profit1);
+        });
+
+        // --- Logika Riwayat (Spesifik Akun) ---
+        function getHistoryKey() {
+            return `jgrp_history_${currentUser}`;
+        }
+
+        function saveToHistory(amount, buyPrice, sellPrice, profit) {
+            let history = JSON.parse(localStorage.getItem(getHistoryKey())) || [];
+            
+            // Buat objek data baru
+            const newData = {
+                date: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                amount: amount,
+                buySell: `${formatMoney(buyPrice)} / ${formatMoney(sellPrice)}`,
+                profit: profit
+            };
+
+            // Masukkan ke array paling depan (terbaru)
+            history.unshift(newData);
+            
+            // Simpan max 10 riwayat agar tidak memberatkan localStorage
+            if(history.length > 10) history.pop();
+
+            localStorage.setItem(getHistoryKey(), JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem(getHistoryKey())) || [];
+            const tbody = document.getElementById('history-table-body');
+            const emptyMsg = document.getElementById('empty-history');
+            
+            tbody.innerHTML = ''; // Clear table
+
+            if (history.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                history.forEach(item => {
+                    // Warna profit hijau/merah tergantung untung/rugi
+                    const profitClass = item.profit >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50';
+                    tr.innerHTML = `
+                        <td class="px-4 py-3">${item.date}</td>
+                        <td class="px-4 py-3">${item.amount}</td>
+                        <td class="px-4 py-3">${item.buySell}</td>
+                        <td class="px-4 py-3 ${profitClass}">${formatMoney(item.profit)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function clearHistory() {
+            if(confirm("Yakin ingin menghapus seluruh riwayat kalkulasi untuk akun ini?")) {
+                localStorage.removeItem(getHistoryKey());
+                loadHistory();
+            }
+        }
+    </script>
+</body>
+</html>
