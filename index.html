@@ -84,6 +84,10 @@
                         <input type="number" id="calc-amount" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Contoh: 150">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Jumlah Bibit Ditanam (Modal)</label>
+                        <input type="number" id="calc-seed" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Contoh: 150">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700">Harga Beli per Bibit ($)</label>
                         <input type="number" step="0.01" id="calc-buy" required value="0.27" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
@@ -296,7 +300,8 @@
             e.preventDefault();
             
             // Ambil Input Utama
-            const amount = parseFloat(document.getElementById('calc-amount').value);
+            const amount = parseFloat(document.getElementById('calc-amount').value); // Untuk Hasil Panen
+            const seedAmount = parseFloat(document.getElementById('calc-seed').value); // Untuk Modal Bibit
             const buyPrice = parseFloat(document.getElementById('calc-buy').value);
             const sellPrice = parseFloat(document.getElementById('calc-sell').value);
             
@@ -310,8 +315,8 @@
             const totalExtraCost = (waterQty * waterPrice) + (hoeQty * hoePrice);
 
             // Perhitungan 1 Hari
-            const gross1 = amount * sellPrice;
-            const cost1 = (amount * buyPrice) + totalExtraCost; // Modal bibit + Modal tambahan
+            const gross1 = amount * sellPrice; // Pemasukan = Hasil Panen x Harga Jual
+            const cost1 = (seedAmount * buyPrice) + totalExtraCost; // Modal = Jumlah Bibit x Harga Beli + Ekstra
             const profit1 = gross1 - cost1;
 
             // Update UI 1 Hari
