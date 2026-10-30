@@ -33,36 +33,13 @@
         <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
             <h2 class="text-2xl font-bold text-center text-jgrp-dark mb-6">JGRP Farmer Portal</h2>
             
-            <!-- Login Form -->
+            <!-- Login Form (Hanya Nickname) -->
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" id="login-username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Nama IC / Username">
+                    <label class="block text-sm font-medium text-gray-700">Nickname IC</label>
+                    <input type="text" id="login-username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Masukkan Nickname (Misal: Evdorkya_Naidezhda)">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="login-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-jgrp-green text-white font-semibold py-2 rounded-lg hover:bg-green-700 transition">Login</button>
-                <p class="text-sm text-center text-gray-600 mt-4">Belum punya akun? <a href="#" onclick="toggleAuth('register')" class="text-jgrp-green hover:underline">Daftar di sini</a></p>
-            </form>
-
-            <!-- Register Form (Hidden by default) -->
-            <form id="register-form" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" id="reg-username" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Buat Username">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="reg-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Buat Password">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Ulangi Password</label>
-                    <input type="password" id="reg-repassword" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-jgrp-green focus:border-jgrp-green" placeholder="Ulangi Password">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">Register</button>
-                <p class="text-sm text-center text-gray-600 mt-4">Sudah punya akun? <a href="#" onclick="toggleAuth('login')" class="text-jgrp-green hover:underline">Login di sini</a></p>
+                <button type="submit" class="w-full bg-jgrp-green text-white font-bold py-2 rounded-lg hover:bg-green-700 transition shadow">Masuk Portal</button>
             </form>
         </div>
     </div>
@@ -263,17 +240,6 @@
             }
         };
 
-        // --- Logika Navigasi Tampilan ---
-        function toggleAuth(type) {
-            if(type === 'register') {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-            } else {
-                document.getElementById('register-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-            }
-        }
-
         function showAuth() {
             document.getElementById('auth-view').classList.remove('hidden');
             document.getElementById('dashboard-view').classList.add('hidden');
@@ -303,24 +269,28 @@
         }
 
         // --- Logika Autentikasi ---
-        // Register
-        document.getElementById('register-form').addEventListener('submit', function(e) {
+        // Login / Masuk Langsung menggunakan Nickname
+        document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const user = document.getElementById('reg-username').value.trim();
-            const pass = document.getElementById('reg-password').value;
-            const repass = document.getElementById('reg-repassword').value;
+            const user = document.getElementById('login-username').value.trim();
 
-            if (pass !== repass) return alert("Password tidak cocok!");
-            
-            let users = JSON.parse(localStorage.getItem(USERS_DB_KEY)) || {};
-            if (users[user]) return alert("Username sudah terdaftar! Silakan gunakan nama lain.");
+            if (user !== "") {
+                // Simpan user ke sistem sesi sebagai akun aktif
+                currentUser = user;
+                localStorage.setItem(SESSION_KEY, user);
+                
+                // Simpan ke daftar user global jika belum ada
+                let users = JSON.parse(localStorage.getItem(USERS_DB_KEY)) || {};
+                if (!users[user]) {
+                    users[user] = true;
+                    localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+                }
 
-            // Simpan User
-            users[user] = pass;
-            localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
-            alert("Registrasi Berhasil! Silakan Login.");
-            toggleAuth('login');
-            this.reset();
+                this.reset();
+                showDashboard();
+            } else {
+                alert("Nickname tidak boleh kosong!");
+            }
         });
 
         // Login
